@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#2c5f7d">
   <title>מעקב קריאה</title>
+  <link rel="manifest" href="manifest.json">
   <style>
     * {
       margin: 0;
@@ -129,21 +131,17 @@
       box-shadow: var(--shadow-sm);
     }
 
-    .overall-progress {
+    .binder-progress {
       background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
       color: white;
     }
 
-    .overall-progress h2 {
+    .binder-progress h2 {
       color: white;
     }
 
-    .binder {
+    .current-sleeve {
       border-right: 4px solid var(--color-secondary);
-    }
-
-    .binder-name {
-      font-size: 1.375rem;
     }
 
     .progress-container {
@@ -160,7 +158,7 @@
       margin-bottom: var(--spacing-sm);
     }
 
-    .overall-progress .progress-bar {
+    .binder-progress .progress-bar {
       background-color: rgba(255, 255, 255, 0.3);
     }
 
@@ -172,7 +170,7 @@
       min-width: 0;
     }
 
-    .overall-progress .progress-fill {
+    .binder-progress .progress-fill {
       background: linear-gradient(90deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 1) 100%);
     }
 
@@ -182,7 +180,7 @@
       font-weight: 500;
     }
 
-    .overall-progress .progress-text {
+    .binder-progress .progress-text {
       color: white;
     }
 
@@ -244,6 +242,18 @@
       font-size: 1.25rem;
     }
 
+    .btn-success {
+      background-color: var(--color-success);
+      color: white;
+      padding: 0.875rem 1.5rem;
+      width: 100%;
+    }
+
+    .btn-success:hover:not(:disabled) {
+      background-color: #4a7a5a;
+      transform: translateY(-1px);
+    }
+
     .weekly-summary {
       text-align: center;
       background: linear-gradient(135deg, #f8f6f3 0%, #e8e4df 100%);
@@ -256,7 +266,9 @@
     }
 
     .actions {
-      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-md);
     }
 
     .dialog {
@@ -526,6 +538,23 @@
       display: block;
     }
 
+    .sleeve-status {
+      font-size: 0.875rem;
+      color: var(--color-text-light);
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .edit-link {
+      color: var(--color-primary);
+      text-decoration: underline;
+      cursor: pointer;
+      font-size: 0.875rem;
+    }
+
+    .edit-link:hover {
+      color: var(--color-primary-dark);
+    }
+
     @keyframes fadeIn {
       from { opacity: 0; }
       to { opacity: 1; }
@@ -616,34 +645,24 @@
     <!-- Setup View -->
     <div id="view-setup" class="view">
       <header>
-        <h1>הגדרה ראשונית</h1>
+        <h1>קלסר חדש</h1>
       </header>
       <main>
         <p class="setup-intro">
           ברוכה הבאה למעקב הקריאה שלך.<br>
-          אנא הזיני את פרטי הקלסרים שלך:
+          אנא הגדירי את הקלסר החדש:
         </p>
         <form id="setup-form">
           <fieldset>
-            <legend>קלסר ראשון</legend>
+            <legend>פרטי הקלסר</legend>
             <div class="form-group">
-              <label for="binder1-name">שם הקלסר</label>
-              <input type="text" id="binder1-name" value="קלסר 1" required maxlength="50">
+              <label for="binder-name">שם הקלסר</label>
+              <input type="text" id="binder-name" value="קלסר 1" required maxlength="50">
             </div>
             <div class="form-group">
-              <label for="binder1-total">מספר כתבות</label>
-              <input type="number" id="binder1-total" value="50" min="1" max="999" required>
-            </div>
-          </fieldset>
-          <fieldset>
-            <legend>קלסר שני</legend>
-            <div class="form-group">
-              <label for="binder2-name">שם הקלסר</label>
-              <input type="text" id="binder2-name" value="קלסר 2" required maxlength="50">
-            </div>
-            <div class="form-group">
-              <label for="binder2-total">מספר כתבות</label>
-              <input type="number" id="binder2-total" value="50" min="1" max="999" required>
+              <label for="total-sleeves">מספר ניילוניות בקלסר</label>
+              <input type="number" id="total-sleeves" value="20" min="1" max="999" required>
+              <small class="form-help">ניתן לערוך מאוחר יותר בהגדרות</small>
             </div>
           </fieldset>
           <button type="submit" class="btn-primary btn-large">התחל מעקב</button>
@@ -651,51 +670,68 @@
       </main>
     </div>
 
+    <!-- Sleeve Setup View -->
+    <div id="view-sleeve-setup" class="view">
+      <header>
+        <h1>פתיחת ניילון חדשה</h1>
+      </header>
+      <main>
+        <p class="setup-intro">
+          <span id="sleeve-setup-title"></span><br>
+          כמה עמודים יש בניילון זה?
+        </p>
+        <form id="sleeve-setup-form">
+          <fieldset>
+            <legend>מספר עמודים</legend>
+            <div class="form-group">
+              <label for="sleeve-pages">עמודים לקריאה</label>
+              <input type="number" id="sleeve-pages" value="5" min="1" max="99" required autofocus>
+            </div>
+          </fieldset>
+          <button type="submit" class="btn-primary btn-large">התחל קריאה</button>
+        </form>
+      </main>
+    </div>
+
     <!-- Main View -->
     <div id="view-main" class="view">
       <header>
-        <h1>מעקב קריאה</h1>
+        <h1 id="main-binder-name">מעקב קריאה</h1>
         <nav>
           <button class="nav-link" data-view="history">היסטוריה</button>
           <button class="nav-link" data-view="settings">הגדרות</button>
         </nav>
       </header>
       <main>
-        <section class="overall-progress">
-          <h2>התקדמות כוללת</h2>
+        <section class="binder-progress">
+          <h2>התקדמות בקלסר</h2>
           <div class="progress-container">
             <div class="progress-bar">
-              <div class="progress-fill" id="overall-progress"></div>
+              <div class="progress-fill" id="binder-progress"></div>
             </div>
-            <div class="progress-text" id="overall-text">0 מתוך 0 כתבות (0%)</div>
+            <div class="progress-text" id="binder-text">0 מתוך 0 ניילוניות</div>
           </div>
         </section>
 
-        <section class="binder" id="binder-1">
-          <h2 class="binder-name" id="binder-1-name">קלסר 1</h2>
+        <section class="current-sleeve">
+          <h2>הניילון הנוכחית</h2>
+          <div class="sleeve-status" id="sleeve-status">ניילון 1 מתוך 20</div>
           <div class="progress-container">
             <div class="progress-bar">
-              <div class="progress-fill" id="binder-1-progress"></div>
+              <div class="progress-fill" id="sleeve-progress"></div>
             </div>
-            <div class="progress-text" id="binder-1-text">0 מתוך 0 כתבות (0%)</div>
+            <div class="progress-text" id="sleeve-text">0 מתוך 0 עמודים</div>
           </div>
-          <button class="btn-primary" id="btn-read-1" data-binder="1">קראתי כתבה</button>
-        </section>
-
-        <section class="binder" id="binder-2">
-          <h2 class="binder-name" id="binder-2-name">קלסר 2</h2>
-          <div class="progress-container">
-            <div class="progress-bar">
-              <div class="progress-fill" id="binder-2-progress"></div>
-            </div>
-            <div class="progress-text" id="binder-2-text">0 מתוך 0 כתבות (0%)</div>
+          <div class="actions">
+            <button class="btn-primary btn-large" id="btn-add-page">+1 עמוד</button>
+            <button class="btn-success" id="btn-finish-sleeve">סיימתי את הניילון</button>
+            <button class="btn-secondary" id="btn-edit-sleeve-pages">עריכת מספר עמודים בניילון</button>
           </div>
-          <button class="btn-primary" id="btn-read-2" data-binder="2">קראתי כתבה</button>
         </section>
 
         <section class="weekly-summary">
           <h2>השבוע (א׳-ו׳)</h2>
-          <div class="weekly-count" id="weekly-count">0 כתבות</div>
+          <div class="weekly-count" id="weekly-count">0 עמודים</div>
         </section>
 
         <section class="actions">
@@ -714,7 +750,7 @@
       </header>
       <main>
         <div id="history-list" class="history-list">
-          <p class="empty-state">טרם נקראו כתבות</p>
+          <p class="empty-state">טרם נקראו עמודים</p>
         </div>
       </main>
     </div>
@@ -729,30 +765,18 @@
       </header>
       <main>
         <section>
-          <h2>עריכת קלסרים</h2>
+          <h2>עריכת קלסר</h2>
           <form id="settings-form">
             <fieldset>
-              <legend id="binder1-legend">קלסר 1</legend>
+              <legend id="settings-legend">הקלסר הנוכחי</legend>
               <div class="form-group">
-                <label for="settings-binder1-name">שם הקלסר</label>
-                <input type="text" id="settings-binder1-name" required maxlength="50">
+                <label for="settings-binder-name">שם הקלסר</label>
+                <input type="text" id="settings-binder-name" required maxlength="50">
               </div>
               <div class="form-group">
-                <label for="settings-binder1-total">מספר כתבות כולל</label>
-                <input type="number" id="settings-binder1-total" min="1" max="999" required>
-                <small class="form-help" id="binder1-help">נקראו: 0</small>
-              </div>
-            </fieldset>
-            <fieldset>
-              <legend id="binder2-legend">קלסר 2</legend>
-              <div class="form-group">
-                <label for="settings-binder2-name">שם הקלסר</label>
-                <input type="text" id="settings-binder2-name" required maxlength="50">
-              </div>
-              <div class="form-group">
-                <label for="settings-binder2-total">מספר כתבות כולל</label>
-                <input type="number" id="settings-binder2-total" min="1" max="999" required>
-                <small class="form-help" id="binder2-help">נקראו: 0</small>
+                <label for="settings-total-sleeves">מספר ניילוניות כולל</label>
+                <input type="number" id="settings-total-sleeves" min="1" max="999" required>
+                <small class="form-help" id="sleeves-help">שינוי בטוח - ההתקדמות שלך נשמרת</small>
               </div>
             </fieldset>
             <button type="submit" class="btn-primary">שמירת שינויים</button>
@@ -775,6 +799,15 @@
             ⚠️ ייבוא קובץ ימחק את כל הנתונים הקיימים
           </p>
         </section>
+
+        <section>
+          <h2>קלסר חדש</h2>
+          <p class="setup-intro">
+            סיימת את הקלסר הנוכחי?<br>
+            ניתן להתחיל קלסר חדש (הקלסר הנוכחי יישמר בהיסטוריה)
+          </p>
+          <button class="btn-secondary" id="btn-new-binder">התחל קלסר חדש</button>
+        </section>
       </main>
     </div>
   </div>
@@ -783,12 +816,26 @@
   <div id="note-dialog" class="dialog">
     <div class="dialog-overlay"></div>
     <div class="dialog-content">
-      <h3>הוספת הערה (אופציונלי)</h3>
-      <label for="note-input" style="position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0,0,0,0);">כותרת או תיאור הכתבה</label>
-      <input type="text" id="note-input" placeholder="כותרת או תיאור הכתבה" maxlength="100">
+      <h3 id="note-dialog-title">הוספת הערה (אופציונלי)</h3>
+      <label for="note-input" style="position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0,0,0,0);">הערה</label>
+      <input type="text" id="note-input" placeholder="הערה על הניילון" maxlength="100">
       <div class="dialog-actions">
         <button class="btn-primary" id="btn-save-note">שמירה</button>
         <button class="btn-secondary" id="btn-skip-note">דילוג</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Pages Dialog -->
+  <div id="edit-pages-dialog" class="dialog">
+    <div class="dialog-overlay"></div>
+    <div class="dialog-content">
+      <h3>עריכת מספר עמודים</h3>
+      <label for="edit-pages-input">מספר עמודים בניילון הנוכחית</label>
+      <input type="number" id="edit-pages-input" min="1" max="99" required>
+      <div class="dialog-actions">
+        <button class="btn-primary" id="btn-save-pages">שמירה</button>
+        <button class="btn-secondary" id="btn-cancel-pages">ביטול</button>
       </div>
     </div>
   </div>
@@ -808,7 +855,7 @@
 
   <script>
     // Storage
-    const STORAGE_KEY = 'reading-tracker-data';
+    const STORAGE_KEY = 'reading-tracker-v2';
     
     function getData() {
       try {
@@ -829,32 +876,57 @@
       }
     }
     
-    function initializeData(binder1Name, binder1Total, binder2Name, binder2Total) {
+    function initializeData(binderName, totalSleeves) {
       const data = {
-        binders: [
-          { id: 1, name: binder1Name, total: binder1Total, read: 0 },
-          { id: 2, name: binder2Name, total: binder2Total, read: 0 }
-        ],
+        currentBinder: {
+          id: Date.now(),
+          name: binderName,
+          totalSleeves: totalSleeves,
+          currentSleeveIndex: 0,
+          sleeves: new Array(totalSleeves).fill(null),
+          startedAt: new Date().toISOString()
+        },
+        finishedBinders: [],
         entries: []
       };
       saveData(data);
       return data;
     }
-    
-    function addEntry(binderId, note = '') {
+
+    function openSleeve(pagesTotal) {
       const data = getData();
       if (!data) return null;
       
-      const binder = data.binders.find(b => b.id === binderId);
-      if (!binder || binder.read >= binder.total) return null;
+      const idx = data.currentBinder.currentSleeveIndex;
+      data.currentBinder.sleeves[idx] = {
+        index: idx,
+        pagesTotal: pagesTotal,
+        pagesRead: 0,
+        completed: false,
+        note: '',
+        openedAt: new Date().toISOString()
+      };
       
-      binder.read++;
+      saveData(data);
+      return data;
+    }
+
+    function addPage() {
+      const data = getData();
+      if (!data) return null;
+      
+      const idx = data.currentBinder.currentSleeveIndex;
+      const sleeve = data.currentBinder.sleeves[idx];
+      if (!sleeve || sleeve.pagesRead >= sleeve.pagesTotal) return null;
+      
+      sleeve.pagesRead++;
       
       const entry = {
         id: Date.now(),
-        binderId,
-        binderName: binder.name,
-        note,
+        binderId: data.currentBinder.id,
+        binderName: data.currentBinder.name,
+        type: 'page',
+        sleeveIndex: idx,
         timestamp: new Date().toISOString()
       };
       
@@ -862,38 +934,149 @@
       saveData(data);
       return data;
     }
-    
-    function undoLastEntry() {
+
+    function finishSleeve(note = '') {
       const data = getData();
-      if (!data || data.entries.length === 0) return null;
+      if (!data) return null;
       
-      const lastEntry = data.entries.shift();
-      const binder = data.binders.find(b => b.id === lastEntry.binderId);
-      if (binder) {
-        binder.read = Math.max(0, binder.read - 1);
+      const idx = data.currentBinder.currentSleeveIndex;
+      const sleeve = data.currentBinder.sleeves[idx];
+      if (!sleeve) return null;
+      
+      sleeve.pagesRead = sleeve.pagesTotal;
+      sleeve.completed = true;
+      sleeve.note = note;
+      sleeve.completedAt = new Date().toISOString();
+      
+      const entry = {
+        id: Date.now(),
+        binderId: data.currentBinder.id,
+        binderName: data.currentBinder.name,
+        type: 'sleeve_complete',
+        sleeveIndex: idx,
+        note: note,
+        timestamp: new Date().toISOString()
+      };
+      
+      data.entries.unshift(entry);
+      
+      // Check if binder is complete
+      const completedSleeves = data.currentBinder.sleeves.filter(s => s && s.completed).length;
+      if (completedSleeves === data.currentBinder.totalSleeves) {
+        data.currentBinder.completedAt = new Date().toISOString();
+        
+        const binderEntry = {
+          id: Date.now(),
+          binderId: data.currentBinder.id,
+          binderName: data.currentBinder.name,
+          type: 'binder_complete',
+          timestamp: new Date().toISOString()
+        };
+        data.entries.unshift(binderEntry);
+      } else {
+        // Move to next sleeve
+        data.currentBinder.currentSleeveIndex++;
       }
       
       saveData(data);
       return data;
     }
-    
-    function updateBinder(binderId, name, total) {
+
+    function undoLast() {
       const data = getData();
-      if (!data) return null;
+      if (!data || data.entries.length === 0) return null;
       
-      const binder = data.binders.find(b => b.id === binderId);
-      if (!binder) return null;
+      const lastEntry = data.entries[0];
       
-      binder.name = name;
-      binder.total = Math.max(binder.read, total);
+      if (lastEntry.type === 'page') {
+        const sleeve = data.currentBinder.sleeves[lastEntry.sleeveIndex];
+        if (sleeve) {
+          sleeve.pagesRead = Math.max(0, sleeve.pagesRead - 1);
+        }
+        data.entries.shift();
+      } else if (lastEntry.type === 'sleeve_complete') {
+        const sleeve = data.currentBinder.sleeves[lastEntry.sleeveIndex];
+        if (sleeve) {
+          sleeve.completed = false;
+          sleeve.note = '';
+          delete sleeve.completedAt;
+          if (data.currentBinder.currentSleeveIndex > lastEntry.sleeveIndex) {
+            data.currentBinder.currentSleeveIndex = lastEntry.sleeveIndex;
+          }
+        }
+        data.entries.shift();
+      } else if (lastEntry.type === 'binder_complete') {
+        delete data.currentBinder.completedAt;
+        data.entries.shift();
+        // Undo the last sleeve completion too
+        if (data.entries.length > 0 && data.entries[0].type === 'sleeve_complete') {
+          const sleeve = data.currentBinder.sleeves[data.entries[0].sleeveIndex];
+          if (sleeve) {
+            sleeve.completed = false;
+            sleeve.note = '';
+            delete sleeve.completedAt;
+            data.currentBinder.currentSleeveIndex = data.entries[0].sleeveIndex;
+          }
+          data.entries.shift();
+        }
+      }
       
       saveData(data);
       return data;
     }
-    
-    function getThisWeekEntries() {
+
+    function updateBinder(name, totalSleeves) {
       const data = getData();
-      if (!data) return [];
+      if (!data) return null;
+      
+      data.currentBinder.name = name;
+      const oldTotal = data.currentBinder.totalSleeves;
+      data.currentBinder.totalSleeves = totalSleeves;
+      
+      if (totalSleeves > oldTotal) {
+        // Add new sleeves
+        for (let i = oldTotal; i < totalSleeves; i++) {
+          data.currentBinder.sleeves.push(null);
+        }
+      } else if (totalSleeves < oldTotal) {
+        // Remove sleeves (only null ones at the end)
+        data.currentBinder.sleeves = data.currentBinder.sleeves.slice(0, totalSleeves);
+      }
+      
+      saveData(data);
+      return data;
+    }
+
+    function updateSleevePages(pages) {
+      const data = getData();
+      if (!data) return null;
+      
+      const idx = data.currentBinder.currentSleeveIndex;
+      const sleeve = data.currentBinder.sleeves[idx];
+      if (!sleeve) return null;
+      
+      sleeve.pagesTotal = Math.max(sleeve.pagesRead, pages);
+      
+      saveData(data);
+      return data;
+    }
+
+    function startNewBinder() {
+      const data = getData();
+      if (!data) return null;
+      
+      // Move current to finished if it has progress
+      if (data.currentBinder.sleeves.some(s => s !== null)) {
+        data.finishedBinders.push({...data.currentBinder});
+      }
+      
+      // Will trigger setup view
+      return null;
+    }
+
+    function getThisWeekPages() {
+      const data = getData();
+      if (!data) return 0;
       
       const now = new Date();
       const dayOfWeek = now.getDay();
@@ -907,24 +1090,28 @@
       saturday.setDate(sunday.getDate() + 6);
       
       return data.entries.filter(entry => {
+        if (entry.type !== 'page') return false;
+        
         const entryDate = new Date(entry.timestamp);
         const entryDay = entryDate.getDay();
         
         if (entryDay === 6) return false;
         
         return entryDate >= sunday && entryDate < saturday;
-      });
+      }).length;
     }
 
     // Animations
-    function celebrateProgress(percent) {
-      const milestones = [25, 50, 75, 100];
-      const isMilestone = milestones.includes(Math.floor(percent));
-      
-      if (isMilestone) {
-        showBigCelebration(percent);
-      } else {
+    function celebrateProgress(percent, type = 'sleeve') {
+      if (type === 'sleeve') {
         showSmallCelebration();
+      } else {
+        const milestones = [25, 50, 75, 100];
+        const isMilestone = milestones.includes(Math.floor(percent));
+        
+        if (isMilestone) {
+          showBigCelebration(percent);
+        }
       }
     }
     
@@ -964,6 +1151,7 @@
 
     // View Management
     let currentView = 'setup';
+    let pendingAction = null;
     
     function showView(viewName) {
       document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
@@ -971,87 +1159,183 @@
       currentView = viewName;
       
       if (viewName === 'main') renderMain();
+      else if (viewName === 'sleeve-setup') renderSleeveSetup();
       else if (viewName === 'history') renderHistory();
       else if (viewName === 'settings') renderSettings();
     }
-    
+
     // Setup
     document.getElementById('setup-form').addEventListener('submit', (e) => {
       e.preventDefault();
       
-      const binder1Name = document.getElementById('binder1-name').value.trim();
-      const binder1Total = parseInt(document.getElementById('binder1-total').value, 10);
-      const binder2Name = document.getElementById('binder2-name').value.trim();
-      const binder2Total = parseInt(document.getElementById('binder2-total').value, 10);
+      const binderName = document.getElementById('binder-name').value.trim();
+      const totalSleeves = parseInt(document.getElementById('total-sleeves').value, 10);
       
-      if (!binder1Name || !binder2Name || binder1Total < 1 || binder2Total < 1) {
-        alert('נא למלא את כל השדות בערכים תקינים');
+      if (!binderName || totalSleeves < 1) {
+        showToast('נא למלא את כל השדות בערכים תקינים');
         return;
       }
       
-      initializeData(binder1Name, binder1Total, binder2Name, binder2Total);
+      initializeData(binderName, totalSleeves);
+      showView('sleeve-setup');
+    });
+
+    // Sleeve Setup
+    function renderSleeveSetup() {
+      const data = getData();
+      if (!data) return;
+      
+      const idx = data.currentBinder.currentSleeveIndex;
+      document.getElementById('sleeve-setup-title').textContent = 
+        `ניילון ${idx + 1} מתוך ${data.currentBinder.totalSleeves}`;
+    }
+
+    document.getElementById('sleeve-setup-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      const pages = parseInt(document.getElementById('sleeve-pages').value, 10);
+      
+      if (pages < 1) {
+        showToast('נא להזין מספר עמודים תקין');
+        return;
+      }
+      
+      openSleeve(pages);
       showView('main');
     });
 
     // Main View
-    let currentBinderId = null;
-    
     function renderMain() {
       const data = getData();
       if (!data) return;
       
-      renderBinder(data.binders[0], 1);
-      renderBinder(data.binders[1], 2);
-      renderOverall(data);
-      renderWeekly();
-      renderUndoButton(data);
-    }
-    
-    function renderBinder(binder, index) {
-      const percent = binder.total > 0 ? (binder.read / binder.total) * 100 : 0;
+      const binder = data.currentBinder;
+      const completedSleeves = binder.sleeves.filter(s => s && s.completed).length;
+      const currentSleeve = binder.sleeves[binder.currentSleeveIndex];
       
-      document.getElementById(`binder-${index}-name`).textContent = binder.name;
-      document.getElementById(`binder-${index}-progress`).style.width = `${percent}%`;
-      document.getElementById(`binder-${index}-text`).textContent = 
-        `${binder.read} מתוך ${binder.total} כתבות (${Math.round(percent)}%)`;
+      // Check if binder is complete
+      if (binder.completedAt) {
+        showToast('🎉 סיימת את הקלסר! ניתן להתחיל קלסר חדש בהגדרות');
+        document.getElementById('btn-add-page').disabled = true;
+        document.getElementById('btn-finish-sleeve').disabled = true;
+        document.getElementById('btn-edit-sleeve-pages').disabled = true;
+      } else if (!currentSleeve) {
+        // Need to open sleeve
+        showView('sleeve-setup');
+        return;
+      } else {
+        document.getElementById('btn-add-page').disabled = false;
+        document.getElementById('btn-finish-sleeve').disabled = false;
+        document.getElementById('btn-edit-sleeve-pages').disabled = false;
+      }
       
-      const button = document.getElementById(`btn-read-${index}`);
-      button.disabled = binder.read >= binder.total;
-    }
-    
-    function renderOverall(data) {
-      const totalRead = data.binders.reduce((sum, b) => sum + b.read, 0);
-      const totalArticles = data.binders.reduce((sum, b) => sum + b.total, 0);
-      const percent = totalArticles > 0 ? (totalRead / totalArticles) * 100 : 0;
+      // Binder progress (with fractional progress from current sleeve)
+      let binderPercent = 0;
+      if (binder.totalSleeves > 0) {
+        const sleeveProgress = currentSleeve ? (currentSleeve.pagesRead / currentSleeve.pagesTotal) : 0;
+        binderPercent = ((completedSleeves + sleeveProgress) / binder.totalSleeves) * 100;
+      }
       
-      document.getElementById('overall-progress').style.width = `${percent}%`;
-      document.getElementById('overall-text').textContent = 
-        `${totalRead} מתוך ${totalArticles} כתבות (${Math.round(percent)}%)`;
-    }
-    
-    function renderWeekly() {
-      const weekEntries = getThisWeekEntries();
-      const count = weekEntries.length;
+      document.getElementById('main-binder-name').textContent = binder.name;
+      document.getElementById('binder-progress').style.width = `${binderPercent}%`;
+      document.getElementById('binder-text').textContent = 
+        `${completedSleeves} מתוך ${binder.totalSleeves} ניילוניות (${Math.round(binderPercent)}%)`;
+      
+      // Current sleeve
+      if (currentSleeve) {
+        const sleevePercent = currentSleeve.pagesTotal > 0 ? 
+          (currentSleeve.pagesRead / currentSleeve.pagesTotal) * 100 : 0;
+        
+        document.getElementById('sleeve-status').textContent = 
+          `ניילון ${binder.currentSleeveIndex + 1} מתוך ${binder.totalSleeves}`;
+        document.getElementById('sleeve-progress').style.width = `${sleevePercent}%`;
+        document.getElementById('sleeve-text').textContent = 
+          `${currentSleeve.pagesRead} מתוך ${currentSleeve.pagesTotal} עמודים`;
+        
+        document.getElementById('btn-add-page').disabled = 
+          currentSleeve.pagesRead >= currentSleeve.pagesTotal;
+      }
+      
+      // Weekly
+      const weekPages = getThisWeekPages();
       document.getElementById('weekly-count').textContent = 
-        count === 0 ? 'טרם נקראו כתבות השבוע' : `${count} כתבות`;
+        weekPages === 0 ? 'טרם נקראו עמודים השבוע' : `${weekPages} עמודים`;
+      
+      // Undo
+      document.getElementById('btn-undo').disabled = data.entries.length === 0 || !!binder.completedAt;
     }
-    
-    function renderUndoButton(data) {
-      document.getElementById('btn-undo').disabled = data.entries.length === 0;
+
+    document.getElementById('btn-add-page').addEventListener('click', () => {
+      const data = getData();
+      if (!data) return;
+      
+      const oldSleeve = data.currentBinder.sleeves[data.currentBinder.currentSleeveIndex];
+      const newData = addPage();
+      
+      if (newData) {
+        const newSleeve = newData.currentBinder.sleeves[newData.currentBinder.currentSleeveIndex];
+        renderMain();
+        
+        const progressBar = document.getElementById('sleeve-progress');
+        pulseElement(progressBar);
+        
+        // Check if sleeve is now complete
+        if (newSleeve.pagesRead === newSleeve.pagesTotal) {
+          setTimeout(() => {
+            if (confirm('סיימת את כל העמודים בניילון! האם לסמן את הניילון כהושלמה?')) {
+              handleFinishSleeve();
+            }
+          }, 500);
+        }
+      }
+    });
+
+    document.getElementById('btn-finish-sleeve').addEventListener('click', handleFinishSleeve);
+
+    function handleFinishSleeve() {
+      pendingAction = 'finish-sleeve';
+      showNoteDialog('הוספת הערה על הניילון (אופציונלי)');
     }
-    
-    document.getElementById('btn-read-1').addEventListener('click', () => handleReadClick(1));
-    document.getElementById('btn-read-2').addEventListener('click', () => handleReadClick(2));
-    document.getElementById('btn-undo').addEventListener('click', handleUndo);
-    
-    function handleReadClick(binderId) {
-      currentBinderId = binderId;
-      showNoteDialog();
-    }
-    
-    function showNoteDialog() {
+
+    document.getElementById('btn-edit-sleeve-pages').addEventListener('click', () => {
+      const data = getData();
+      if (!data) return;
+      
+      const sleeve = data.currentBinder.sleeves[data.currentBinder.currentSleeveIndex];
+      if (!sleeve) return;
+      
+      document.getElementById('edit-pages-input').value = sleeve.pagesTotal;
+      document.getElementById('edit-pages-input').min = sleeve.pagesRead;
+      document.getElementById('edit-pages-dialog').classList.add('active');
+      document.getElementById('edit-pages-input').focus();
+    });
+
+    document.getElementById('btn-save-pages').addEventListener('click', () => {
+      const pages = parseInt(document.getElementById('edit-pages-input').value, 10);
+      if (pages < 1) return;
+      
+      updateSleevePages(pages);
+      document.getElementById('edit-pages-dialog').classList.remove('active');
+      renderMain();
+      showToast('מספר העמודים עודכן');
+    });
+
+    document.getElementById('btn-cancel-pages').addEventListener('click', () => {
+      document.getElementById('edit-pages-dialog').classList.remove('active');
+    });
+
+    document.getElementById('btn-undo').addEventListener('click', () => {
+      if (confirm('האם את בטוחה שברצונך לבטל את הפעולה האחרונה?')) {
+        undoLast();
+        renderMain();
+      }
+    });
+
+    // Note Dialog
+    function showNoteDialog(title = 'הוספת הערה (אופציונלי)') {
       const dialog = document.getElementById('note-dialog');
       const input = document.getElementById('note-input');
+      document.getElementById('note-dialog-title').textContent = title;
       dialog.classList.add('active');
       input.value = '';
       input.focus();
@@ -1059,58 +1343,58 @@
     
     function hideNoteDialog() {
       document.getElementById('note-dialog').classList.remove('active');
-      currentBinderId = null;
+      pendingAction = null;
     }
-    
+
     document.getElementById('btn-save-note').addEventListener('click', () => {
       const note = document.getElementById('note-input').value.trim();
-      saveEntry(note);
+      handleNoteAction(note);
     });
-    
+
     document.getElementById('btn-skip-note').addEventListener('click', () => {
-      saveEntry('');
+      handleNoteAction('');
     });
-    
+
     document.getElementById('note-input').addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
         const note = e.target.value.trim();
-        saveEntry(note);
+        handleNoteAction(note);
       } else if (e.key === 'Escape') {
-        saveEntry('');
+        handleNoteAction('');
       }
     });
-    
-    function saveEntry(note) {
-      if (!currentBinderId) return;
-      
-      const data = getData();
-      const binder = data.binders.find(b => b.id === currentBinderId);
-      const oldPercent = binder.total > 0 ? (binder.read / binder.total) * 100 : 0;
-      
-      const newData = addEntry(currentBinderId, note);
-      
-      if (newData) {
-        const newBinder = newData.binders.find(b => b.id === currentBinderId);
-        const newPercent = newBinder.total > 0 ? (newBinder.read / newBinder.total) * 100 : 0;
+
+    function handleNoteAction(note) {
+      if (pendingAction === 'finish-sleeve') {
+        const data = getData();
+        const oldCompleted = data.currentBinder.sleeves.filter(s => s && s.completed).length;
+        const oldPercent = (oldCompleted / data.currentBinder.totalSleeves) * 100;
         
-        renderMain();
+        const newData = finishSleeve(note);
         
-        const progressBar = document.getElementById(`binder-${currentBinderId}-progress`);
-        pulseElement(progressBar);
-        celebrateProgress(newPercent);
+        if (newData) {
+          const newCompleted = newData.currentBinder.sleeves.filter(s => s && s.completed).length;
+          const newPercent = (newCompleted / newData.currentBinder.totalSleeves) * 100;
+          
+          celebrateProgress(0, 'sleeve');
+          
+          // Check milestones
+          const milestones = [25, 50, 75, 100];
+          const oldMilestone = milestones.filter(m => m <= Math.floor(oldPercent)).pop() || 0;
+          const newMilestone = milestones.filter(m => m <= Math.floor(newPercent)).pop() || 0;
+          
+          if (newMilestone > oldMilestone) {
+            setTimeout(() => celebrateProgress(newPercent, 'binder'), 800);
+          }
+          
+          renderMain();
+        }
       }
       
       hideNoteDialog();
     }
-    
-    function handleUndo() {
-      if (confirm('האם את בטוחה שברצונך לבטל את הרישום האחרון?')) {
-        const newData = undoLastEntry();
-        if (newData) renderMain();
-      }
-    }
 
-    // History View
+    // History
     function renderHistory() {
       const data = getData();
       if (!data) return;
@@ -1118,7 +1402,7 @@
       const container = document.getElementById('history-list');
       
       if (data.entries.length === 0) {
-        container.innerHTML = '<p class="empty-state">טרם נקראו כתבות</p>';
+        container.innerHTML = '<p class="empty-state">טרם נקראו עמודים</p>';
         return;
       }
       
@@ -1126,16 +1410,21 @@
         const date = new Date(entry.timestamp);
         const formattedDate = formatDate(date);
         
+        let typeText = '';
+        if (entry.type === 'page') typeText = 'עמוד';
+        else if (entry.type === 'sleeve_complete') typeText = `ניילון ${entry.sleeveIndex + 1} הושלמה`;
+        else if (entry.type === 'binder_complete') typeText = 'הקלסר הושלם!';
+        
         return `
           <div class="history-item">
             <div class="history-date">${formattedDate}</div>
-            <div class="history-binder">${escapeHtml(entry.binderName)}</div>
+            <div class="history-binder">${escapeHtml(entry.binderName)} - ${typeText}</div>
             ${entry.note ? `<div class="history-note">${escapeHtml(entry.note)}</div>` : ''}
           </div>
         `;
       }).join('');
     }
-    
+
     function formatDate(date) {
       const days = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
       const dayName = days[date.getDay()];
@@ -1149,54 +1438,43 @@
       
       return `יום ${dayName}, ${day}/${month}/${year} בשעה ${hours}:${minutes}`;
     }
-    
+
     function escapeHtml(text) {
       const div = document.createElement('div');
       div.textContent = text;
       return div.innerHTML;
     }
 
-    // Settings View
+    // Settings
     function renderSettings() {
       const data = getData();
       if (!data) return;
       
-      const binder1 = data.binders[0];
-      const binder2 = data.binders[1];
+      document.getElementById('settings-legend').textContent = data.currentBinder.name;
+      document.getElementById('settings-binder-name').value = data.currentBinder.name;
+      document.getElementById('settings-total-sleeves').value = data.currentBinder.totalSleeves;
       
-      document.getElementById('binder1-legend').textContent = binder1.name;
-      document.getElementById('settings-binder1-name').value = binder1.name;
-      document.getElementById('settings-binder1-total').value = binder1.total;
-      document.getElementById('settings-binder1-total').min = binder1.read;
-      document.getElementById('binder1-help').textContent = `נקראו: ${binder1.read}`;
-      
-      document.getElementById('binder2-legend').textContent = binder2.name;
-      document.getElementById('settings-binder2-name').value = binder2.name;
-      document.getElementById('settings-binder2-total').value = binder2.total;
-      document.getElementById('settings-binder2-total').min = binder2.read;
-      document.getElementById('binder2-help').textContent = `נקראו: ${binder2.read}`;
+      const completed = data.currentBinder.sleeves.filter(s => s && s.completed).length;
+      document.getElementById('sleeves-help').textContent = 
+        `${completed} ניילוניות הושלמו - שינוי בטוח`;
     }
-    
+
     document.getElementById('settings-form').addEventListener('submit', (e) => {
       e.preventDefault();
       
-      const binder1Name = document.getElementById('settings-binder1-name').value.trim();
-      const binder1Total = parseInt(document.getElementById('settings-binder1-total').value, 10);
-      const binder2Name = document.getElementById('settings-binder2-name').value.trim();
-      const binder2Total = parseInt(document.getElementById('settings-binder2-total').value, 10);
+      const name = document.getElementById('settings-binder-name').value.trim();
+      const totalSleeves = parseInt(document.getElementById('settings-total-sleeves').value, 10);
       
-      if (!binder1Name || !binder2Name || binder1Total < 1 || binder2Total < 1) {
+      if (!name || totalSleeves < 1) {
         showToast('נא למלא את כל השדות בערכים תקינים');
         return;
       }
       
-      updateBinder(1, binder1Name, binder1Total);
-      updateBinder(2, binder2Name, binder2Total);
-      
+      updateBinder(name, totalSleeves);
       showToast('השינויים נשמרו בהצלחה');
       setTimeout(() => showView('main'), 1500);
     });
-    
+
     document.getElementById('btn-export').addEventListener('click', () => {
       const data = getData();
       if (!data) return;
@@ -1213,7 +1491,7 @@
       URL.revokeObjectURL(url);
       showToast('הנתונים יוצאו בהצלחה');
     });
-    
+
     document.getElementById('import-file').addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (!file) return;
@@ -1229,7 +1507,7 @@
         try {
           const data = JSON.parse(evt.target.result);
           
-          if (!data.binders || !Array.isArray(data.entries)) {
+          if (!data.currentBinder || !Array.isArray(data.entries)) {
             throw new Error('Invalid data format');
           }
           
@@ -1248,7 +1526,23 @@
       reader.readAsText(file);
       e.target.value = '';
     });
-    
+
+    document.getElementById('btn-new-binder').addEventListener('click', () => {
+      const data = getData();
+      if (!data) return;
+      
+      if (data.currentBinder.completedAt || 
+          confirm('האם את בטוחה? הקלסר הנוכחי יועבר להיסטוריה וניתן יהיה להתחיל קלסר חדש.')) {
+        startNewBinder();
+        
+        // Reset form
+        document.getElementById('binder-name').value = 'קלסר ' + (data.finishedBinders.length + 2);
+        document.getElementById('total-sleeves').value = '20';
+        
+        showView('setup');
+      }
+    });
+
     function showToast(message) {
       const toast = document.getElementById('toast');
       const messageEl = document.getElementById('toast-message');
@@ -1269,10 +1563,17 @@
 
     // Initialize
     const data = getData();
-    if (data) {
+    if (data && data.currentBinder) {
       showView('main');
     } else {
       showView('setup');
+    }
+
+    // Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js').catch(err => {
+        console.error('Service Worker registration failed:', err);
+      });
     }
   </script>
 </body>

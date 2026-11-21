@@ -1,0 +1,26 @@
+{
+  "name": "מעקב קריאה - ארכיון 7 באוקטובר",
+  "short_name": "מעקב קריאה",
+  "description": "אפליקציה למעקב אחר עמודים שנקראו מארכיון 7 באוקטובר",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f8f6f3",
+  "theme_color": "#2c5f7d",
+  "orientation": "portrait-primary",
+  "dir": "rtl",
+  "lang": "he",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
