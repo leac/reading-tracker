@@ -254,57 +254,6 @@
       transform: translateY(-1px);
     }
 
-    .page-actions {
-      display: flex;
-      gap: var(--spacing-sm);
-    }
-
-    .page-actions .btn-primary,
-    .page-actions .btn-listen {
-      flex: 1;
-      width: auto;
-      padding: 1.25rem 0.75rem;
-    }
-
-    .btn-listen {
-      background-color: var(--color-progress);
-      color: white;
-      font-size: 1.25rem;
-      box-shadow: var(--shadow-md);
-    }
-
-    .btn-listen:hover:not(:disabled) {
-      background-color: #3d7a94;
-      transform: translateY(-1px);
-      box-shadow: var(--shadow-lg);
-    }
-
-    .btn-listen:active:not(:disabled) {
-      transform: translateY(0);
-    }
-
-    .btn-listen:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .listen-stat {
-      margin-top: var(--spacing-xs);
-      font-size: 0.95rem;
-      color: var(--color-text-light);
-    }
-
-    .listen-stat:empty {
-      display: none;
-    }
-
-    .history-summary {
-      text-align: center;
-      font-size: 0.95rem;
-      color: var(--color-text-light);
-      margin-bottom: var(--spacing-md);
-    }
-
     .weekly-summary {
       text-align: center;
       background: linear-gradient(135deg, #f8f6f3 0%, #e8e4df 100%);
@@ -514,11 +463,42 @@
     }
 
     .history-item {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--spacing-sm);
       background: var(--color-surface);
       border-radius: var(--radius-md);
       padding: var(--spacing-md);
       border-right: 3px solid var(--color-secondary);
       box-shadow: var(--shadow-sm);
+    }
+
+    .history-item-body {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .btn-delete-entry {
+      flex-shrink: 0;
+      background: none;
+      border: none;
+      box-shadow: none;
+      width: auto;
+      min-width: 2.75rem;
+      min-height: 2.75rem;
+      padding: 0.25rem;
+      font-size: 1.25rem;
+      font-weight: 400;
+      line-height: 1;
+      color: var(--color-text-light);
+      border-radius: var(--radius-sm);
+    }
+
+    .btn-delete-entry:hover,
+    .btn-delete-entry:focus {
+      color: #b8534f;
+      background-color: rgba(184, 83, 79, 0.12);
+      outline: none;
     }
 
     .history-date {
@@ -774,10 +754,7 @@
             <div class="progress-text" id="sleeve-text">0 מתוך 0 עמודים</div>
           </div>
           <div class="actions">
-            <div class="page-actions">
-              <button class="btn-primary btn-large" id="btn-add-page">+1 עמוד</button>
-              <button class="btn-listen btn-large" id="btn-listen-page">🎧 הקשבתי</button>
-            </div>
+            <button class="btn-primary btn-large" id="btn-add-page">+1 עמוד</button>
             <button class="btn-success" id="btn-finish-sleeve">סיימתי את הניילון</button>
             <button class="btn-secondary" id="btn-edit-sleeve-pages">עריכת מספר עמודים בניילון</button>
           </div>
@@ -786,7 +763,6 @@
         <section class="weekly-summary">
           <h2>השבוע (א׳-ו׳)</h2>
           <div class="weekly-count" id="weekly-count">0 עמודים</div>
-          <div class="listen-stat" id="weekly-listen-stat"></div>
         </section>
 
         <section class="actions">
@@ -913,12 +889,10 @@
     const STORAGE_KEY = 'reading-tracker-v2';
     
     function normalizeData(data) {
-      if (!data || !Array.isArray(data.entries)) return data;
-      data.entries.forEach(entry => {
-        if (entry && entry.type === 'page' && entry.method !== 'listened') {
-          entry.method = 'read';
-        }
-      });
+      if (!data) return data;
+      if (!Array.isArray(data.entries)) data.entries = [];
+      // Older backups may include a method field (read / listen / listened).
+      // All page entries count the same; the field is ignored.
       return data;
     }
 
@@ -976,7 +950,7 @@
       return data;
     }
 
-    function addPage(method = 'read') {
+    function addPage() {
       const data = getData();
       if (!data) return null;
       
@@ -992,7 +966,6 @@
         binderName: data.currentBinder.name,
         type: 'page',
         sleeveIndex: idx,
-        method: method === 'listened' ? 'listened' : 'read',
         timestamp: new Date().toISOString()
       };
       
@@ -1091,6 +1064,73 @@
       return data;
     }
 
+    function findSleeve(data, binderId, sleeveIndex) {
+      if (data.currentBinder && data.currentBinder.id === binderId) {
+        return data.currentBinder.sleeves[sleeveIndex] || null;
+      }
+      const finished = (data.finishedBinders || []).find(b => b.id === binderId);
+      return finished ? (finished.sleeves[sleeveIndex] || null) : null;
+    }
+
+    function findBinder(data, binderId) {
+      if (data.currentBinder && data.currentBinder.id === binderId) {
+        return data.currentBinder;
+      }
+      return (data.finishedBinders || []).find(b => b.id === binderId) || null;
+    }
+
+    function deleteEntry(entryId) {
+      const data = getData();
+      if (!data || !Array.isArray(data.entries)) return null;
+      
+      const index = data.entries.findIndex(entry => String(entry.id) === String(entryId));
+      if (index === -1) return null;
+      
+      const entry = data.entries[index];
+      
+      if (entry.type === 'page') {
+        const sleeve = findSleeve(data, entry.binderId, entry.sleeveIndex);
+        if (sleeve) {
+          sleeve.pagesRead = Math.max(0, sleeve.pagesRead - 1);
+          if (sleeve.completed && sleeve.pagesRead < sleeve.pagesTotal) {
+            sleeve.completed = false;
+            sleeve.note = '';
+            delete sleeve.completedAt;
+          }
+        }
+        data.entries.splice(index, 1);
+      } else if (entry.type === 'sleeve_complete') {
+        const sleeve = findSleeve(data, entry.binderId, entry.sleeveIndex);
+        const binder = findBinder(data, entry.binderId);
+        if (sleeve) {
+          sleeve.completed = false;
+          sleeve.note = '';
+          delete sleeve.completedAt;
+        }
+        if (binder && binder.currentSleeveIndex > entry.sleeveIndex) {
+          const laterOpened = binder.sleeves.slice(entry.sleeveIndex + 1).some(s => s !== null);
+          if (!laterOpened) {
+            binder.currentSleeveIndex = entry.sleeveIndex;
+          }
+        }
+        if (binder) delete binder.completedAt;
+        data.entries.splice(index, 1);
+        const binderEntryIndex = data.entries.findIndex(e =>
+          e.type === 'binder_complete' && e.binderId === entry.binderId
+        );
+        if (binderEntryIndex !== -1) data.entries.splice(binderEntryIndex, 1);
+      } else if (entry.type === 'binder_complete') {
+        const binder = findBinder(data, entry.binderId);
+        if (binder) delete binder.completedAt;
+        data.entries.splice(index, 1);
+      } else {
+        data.entries.splice(index, 1);
+      }
+      
+      saveData(data);
+      return data;
+    }
+
     function updateBinder(name, totalSleeves) {
       const data = getData();
       if (!data) return null;
@@ -1157,33 +1197,6 @@
       
       return data.entries.filter(entry => {
         if (entry.type !== 'page') return false;
-        
-        const entryDate = new Date(entry.timestamp);
-        const entryDay = entryDate.getDay();
-        
-        if (entryDay === 6) return false;
-        
-        return entryDate >= sunday && entryDate < saturday;
-      }).length;
-    }
-
-    function getThisWeekListened() {
-      const data = getData();
-      if (!data) return 0;
-      
-      const now = new Date();
-      const dayOfWeek = now.getDay();
-      const sundayOffset = dayOfWeek === 6 ? -6 : (dayOfWeek === 0 ? 0 : -(dayOfWeek + 1));
-      
-      const sunday = new Date(now);
-      sunday.setDate(now.getDate() + sundayOffset);
-      sunday.setHours(0, 0, 0, 0);
-      
-      const saturday = new Date(sunday);
-      saturday.setDate(sunday.getDate() + 6);
-      
-      return data.entries.filter(entry => {
-        if (entry.type !== 'page' || entry.method !== 'listened') return false;
         
         const entryDate = new Date(entry.timestamp);
         const entryDay = entryDate.getDay();
@@ -1310,7 +1323,6 @@
       if (binder.completedAt) {
         showToast('🎉 סיימת את הקלסר! ניתן להתחיל קלסר חדש בהגדרות');
         document.getElementById('btn-add-page').disabled = true;
-        document.getElementById('btn-listen-page').disabled = true;
         document.getElementById('btn-finish-sleeve').disabled = true;
         document.getElementById('btn-edit-sleeve-pages').disabled = true;
       } else if (!currentSleeve) {
@@ -1319,7 +1331,6 @@
         return;
       } else {
         document.getElementById('btn-add-page').disabled = false;
-        document.getElementById('btn-listen-page').disabled = false;
         document.getElementById('btn-finish-sleeve').disabled = false;
         document.getElementById('btn-edit-sleeve-pages').disabled = false;
       }
@@ -1349,7 +1360,6 @@
         
         const sleeveFull = currentSleeve.pagesRead >= currentSleeve.pagesTotal;
         document.getElementById('btn-add-page').disabled = sleeveFull;
-        document.getElementById('btn-listen-page').disabled = sleeveFull;
       }
       
       // Weekly
@@ -1357,19 +1367,15 @@
       document.getElementById('weekly-count').textContent = 
         weekPages === 0 ? 'טרם נקראו עמודים השבוע' : `${weekPages} עמודים`;
       
-      const weekListened = getThisWeekListened();
-      const listenStat = document.getElementById('weekly-listen-stat');
-      listenStat.textContent = weekListened > 0 ? `מתוכם 🎧 ${weekListened} בהאזנה` : '';
-      
       // Undo
       document.getElementById('btn-undo').disabled = data.entries.length === 0 || !!binder.completedAt;
     }
 
-    function handleAddPage(method) {
+    document.getElementById('btn-add-page').addEventListener('click', () => {
       const data = getData();
       if (!data) return;
       
-      const newData = addPage(method);
+      const newData = addPage();
       
       if (newData) {
         const newSleeve = newData.currentBinder.sleeves[newData.currentBinder.currentSleeveIndex];
@@ -1387,10 +1393,7 @@
           }, 500);
         }
       }
-    }
-
-    document.getElementById('btn-add-page').addEventListener('click', () => handleAddPage('read'));
-    document.getElementById('btn-listen-page').addEventListener('click', () => handleAddPage('listened'));
+    });
 
     document.getElementById('btn-finish-sleeve').addEventListener('click', handleFinishSleeve);
 
@@ -1508,31 +1511,43 @@
         return;
       }
       
-      const pageEntries = data.entries.filter(entry => entry.type === 'page');
-      const listenedTotal = pageEntries.filter(entry => entry.method === 'listened').length;
-      const summaryHtml = listenedTotal > 0
-        ? `<p class="history-summary">מתוכם 🎧 ${listenedTotal} בהאזנה</p>`
-        : '';
-      
-      container.innerHTML = summaryHtml + data.entries.map(entry => {
+      container.innerHTML = data.entries.map(entry => {
         const date = new Date(entry.timestamp);
         const formattedDate = formatDate(date);
         
         let typeText = '';
-        if (entry.type === 'page') {
-          typeText = entry.method === 'listened' ? 'עמוד 🎧 בהאזנה' : 'עמוד';
-        } else if (entry.type === 'sleeve_complete') typeText = `ניילון ${entry.sleeveIndex + 1} הושלמה`;
+        if (entry.type === 'page') typeText = 'עמוד';
+        else if (entry.type === 'sleeve_complete') typeText = `ניילון ${entry.sleeveIndex + 1} הושלמה`;
         else if (entry.type === 'binder_complete') typeText = 'הקלסר הושלם!';
         
         return `
           <div class="history-item">
-            <div class="history-date">${formattedDate}</div>
-            <div class="history-binder">${escapeHtml(entry.binderName)} - ${typeText}</div>
-            ${entry.note ? `<div class="history-note">${escapeHtml(entry.note)}</div>` : ''}
+            <div class="history-item-body">
+              <div class="history-date">${formattedDate}</div>
+              <div class="history-binder">${escapeHtml(entry.binderName)} - ${typeText}</div>
+              ${entry.note ? `<div class="history-note">${escapeHtml(entry.note)}</div>` : ''}
+            </div>
+            <button type="button" class="btn-delete-entry" data-entry-id="${entry.id}" aria-label="מחיקת רשומה">✕</button>
           </div>
         `;
       }).join('');
     }
+
+    document.getElementById('history-list').addEventListener('click', (e) => {
+      const btn = e.target.closest('.btn-delete-entry');
+      if (!btn) return;
+      
+      const entryId = btn.dataset.entryId;
+      if (!entryId) return;
+      
+      if (!confirm('האם את בטוחה שברצונך למחוק את הרשומה הזו? ההתקדמות תתעדכן בהתאם.')) {
+        return;
+      }
+      
+      deleteEntry(entryId);
+      renderHistory();
+      showToast('הרשומה נמחקה');
+    });
 
     function formatDate(date) {
       const days = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
